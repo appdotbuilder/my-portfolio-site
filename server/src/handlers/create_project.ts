@@ -1,18 +1,29 @@
+import { db } from '../db';
+import { projectsTable } from '../db/schema';
 import { type CreateProjectInput, type Project } from '../schema';
 
-export async function createProject(input: CreateProjectInput): Promise<Project> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is to create a new project in the database
-    // with the provided title, description, image_url, order_index, and is_active status.
-    // Requires admin authentication.
-    return Promise.resolve({
-        id: 1,
+export const createProject = async (input: CreateProjectInput): Promise<Project> => {
+  try {
+    // Insert project record
+    const result = await db.insert(projectsTable)
+      .values({
         title: input.title,
         description: input.description,
         image_url: input.image_url,
         order_index: input.order_index,
-        is_active: input.is_active,
-        created_at: new Date(),
-        updated_at: new Date()
-    } as Project);
-}
+        is_active: input.is_active ?? true // Use default if not provided
+      })
+      .returning()
+      .execute();
+
+    // Return the created project
+    const project = result[0];
+    return {
+      ...project,
+      // All fields are already properly typed, no numeric conversions needed
+    };
+  } catch (error) {
+    console.error('Project creation failed:', error);
+    throw error;
+  }
+};

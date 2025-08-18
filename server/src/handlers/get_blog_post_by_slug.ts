@@ -1,10 +1,42 @@
+import { db } from '../db';
+import { blogPostsTable } from '../db/schema';
 import { type GetBlogPostBySlugInput, type BlogPost } from '../schema';
+import { eq, and, isNotNull } from 'drizzle-orm';
 
 export async function getBlogPostBySlug(input: GetBlogPostBySlugInput): Promise<BlogPost | null> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is to fetch a single published blog post by its slug
-    // for display on the blog post detail page. Only returns posts where
-    // is_published = true and published_at is not null.
-    // Returns null if no published post found with the given slug.
-    return Promise.resolve(null);
+  try {
+    // Query for a published blog post by slug
+    const results = await db.select()
+      .from(blogPostsTable)
+      .where(
+        and(
+          eq(blogPostsTable.slug, input.slug),
+          eq(blogPostsTable.is_published, true),
+          isNotNull(blogPostsTable.published_at)
+        )
+      )
+      .limit(1)
+      .execute();
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    const blogPost = results[0];
+    return {
+      id: blogPost.id,
+      title: blogPost.title,
+      slug: blogPost.slug,
+      excerpt: blogPost.excerpt,
+      content: blogPost.content,
+      image_url: blogPost.image_url,
+      is_published: blogPost.is_published,
+      published_at: blogPost.published_at,
+      created_at: blogPost.created_at,
+      updated_at: blogPost.updated_at
+    };
+  } catch (error) {
+    console.error('Failed to get blog post by slug:', error);
+    throw error;
+  }
 }

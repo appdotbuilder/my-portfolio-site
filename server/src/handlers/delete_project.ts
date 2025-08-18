@@ -1,12 +1,34 @@
+import { db } from '../db';
+import { projectsTable } from '../db/schema';
 import { type DeleteInput } from '../schema';
+import { eq } from 'drizzle-orm';
 
-export async function deleteProject(input: DeleteInput): Promise<{ success: boolean; message: string }> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is to delete a project from the database by ID.
-    // Returns success status and message.
-    // Requires admin authentication.
-    return Promise.resolve({
-        success: true,
-        message: "Project deleted successfully"
-    });
-}
+export const deleteProject = async (input: DeleteInput): Promise<{ success: boolean; message: string }> => {
+  try {
+    // First, check if the project exists
+    const existingProject = await db.select()
+      .from(projectsTable)
+      .where(eq(projectsTable.id, input.id))
+      .execute();
+
+    if (existingProject.length === 0) {
+      return {
+        success: false,
+        message: 'Project not found'
+      };
+    }
+
+    // Delete the project
+    await db.delete(projectsTable)
+      .where(eq(projectsTable.id, input.id))
+      .execute();
+
+    return {
+      success: true,
+      message: 'Project deleted successfully'
+    };
+  } catch (error) {
+    console.error('Project deletion failed:', error);
+    throw error;
+  }
+};
