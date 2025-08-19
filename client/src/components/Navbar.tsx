@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import type { Route } from '../App';
 
@@ -58,22 +57,10 @@ export function Navbar({ currentRoute, onNavigate }: NavbarProps) {
             ))}
           </div>
 
-          {/* Admin Login Button */}
-          <div className="flex items-center">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => handleNavigation('admin')}
-            >
-              Admin Login
-            </Button>
-          </div>
-
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <Button 
-              variant="ghost" 
-              size="sm"
+            <button 
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? (
@@ -85,7 +72,7 @@ export function Navbar({ currentRoute, onNavigate }: NavbarProps) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               )}
-            </Button>
+            </button>
           </div>
         </div>
 
@@ -104,12 +91,6 @@ export function Navbar({ currentRoute, onNavigate }: NavbarProps) {
                   {item.label}
                 </button>
               ))}
-              <button
-                onClick={() => handleNavigation('admin')}
-                className="text-sm font-medium px-3 py-2 rounded-md transition-colors hover:bg-gray-100 text-left text-gray-700 border-t border-gray-200 mt-2 pt-4"
-              >
-                Admin Login
-              </button>
             </div>
           </div>
         )}

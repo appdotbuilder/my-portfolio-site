@@ -3,6 +3,8 @@ import { createHTTPServer } from '@trpc/server/adapters/standalone';
 import 'dotenv/config';
 import cors from 'cors';
 import superjson from 'superjson';
+import { db } from './db';
+import { adminUsersTable, pageContentTable } from './db/schema';
 import { z } from 'zod';
 
 // Import schemas
@@ -106,7 +108,111 @@ const appRouter = router({
 
 export type AppRouter = typeof appRouter;
 
+// Database seeding function
+async function seedDatabase() {
+  try {
+    // Seed admin users
+    const existingAdmins = await db.select()
+      .from(adminUsersTable)
+      .execute();
+
+    if (existingAdmins.length === 0) {
+      console.log('No admin users found. Creating default admin user...');
+      
+      // Hash the default password
+      const hashedPassword = await Bun.password.hash('password');
+      
+      // Create default admin user
+      await db.insert(adminUsersTable)
+        .values({
+          username: 'admin',
+          password_hash: hashedPassword
+        })
+        .execute();
+      
+      console.log('Default admin user created successfully (username: admin, password: password)');
+    }
+
+    // Seed page content
+    const existingPageContent = await db.select()
+      .from(pageContentTable)
+      .execute();
+
+    if (existingPageContent.length === 0) {
+      console.log('No page content found. Creating default page content...');
+      
+      // Create default home page content
+      await db.insert(pageContentTable)
+        .values({
+          page_type: 'home',
+          hero_title: 'Welcome to Our Amazing Platform',
+          hero_text: 'We create innovative digital solutions that help businesses grow and succeed in the modern world. Our team of experts is passionate about delivering exceptional results.',
+          hero_image_url: null,
+          content_sections: JSON.stringify({
+            sections: [
+              {
+                title: 'Innovation First',
+                content: 'We leverage cutting-edge technologies to build solutions that are not just current, but future-ready.',
+                image: null
+              },
+              {
+                title: 'Expert Team',
+                content: 'Our diverse team brings together years of experience in design, development, and digital strategy.',
+                image: null
+              },
+              {
+                title: 'Results Driven',
+                content: 'Every project we undertake is focused on delivering measurable results and exceeding expectations.',
+                image: null
+              }
+            ]
+          })
+        })
+        .execute();
+
+      // Create default about page content
+      await db.insert(pageContentTable)
+        .values({
+          page_type: 'about',
+          hero_title: 'About Our Company',
+          hero_text: 'We are a team of passionate professionals dedicated to creating exceptional digital experiences. Our story is one of innovation, collaboration, and continuous growth.',
+          hero_image_url: null,
+          content_sections: JSON.stringify({
+            sections: [
+              {
+                title: 'Our Mission',
+                content: 'To empower businesses with cutting-edge technology solutions that drive growth and success.',
+                image: null
+              },
+              {
+                title: 'Our Values',
+                content: 'We believe in transparency, innovation, and putting our clients first in everything we do.',
+                image: null
+              },
+              {
+                title: 'Our Vision',
+                content: 'To be the leading provider of digital solutions that transform how businesses operate and grow.',
+                image: null
+              }
+            ]
+          })
+        })
+        .execute();
+      
+      console.log('Default page content created successfully for Home and About pages');
+    }
+
+    console.log('Database seeding completed successfully.');
+  } catch (error) {
+    console.error('Database seeding failed:', error);
+    // Don't throw the error to prevent app startup failure
+  }
+}
+
 async function start() {
+  // Run database seeding before starting the server
+  await seedDatabase();
+  
   const port = process.env['SERVER_PORT'] || 2022;
   const server = createHTTPServer({
     middleware: (req, res, next) => {
